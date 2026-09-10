@@ -1,8 +1,10 @@
 # lego-entregas
 
-Páginas de presentación de creativos para clientes de Lego Marketing.
-HTML estático autocontenido (imágenes embebidas). Publicado con GitHub Pages.
+Páginas de presentación de creativos para clientes de Lego Marketing (GitHub Pages).
+HTML estático. Las imágenes se muestran comprimidas embebidas; en `assets/` van los
+**originales** para descargar / reproducir.
 
-- `index.html` — entrega actual: **Electric Avenue · Renovación de creativos de pauta · Septiembre 2026**
+- `index.html` — Electric Avenue · Renovación de creativos de pauta · Septiembre 2026
+- `assets/` — archivos originales (imagen o video) de cada pieza
 
-Para una nueva entrega: reemplazar `index.html` (o añadir subcarpeta `cliente/mes/index.html`) y hacer push.
+Nueva entrega: regenerar con `ib-entregas/build/build.py` y hacer push.
