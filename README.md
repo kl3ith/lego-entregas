@@ -6,5 +6,6 @@ HTML estático. Las imágenes se muestran comprimidas embebidas; en `assets/` va
 
 - `index.html` — Electric Avenue · Renovación de creativos de pauta · Septiembre 2026
 - `assets/` — archivos originales (imagen o video) de cada pieza
+- `cla-300l/` — Electric Avenue · Nuevo creativo de pauta: CLA 300 L · Septiembre 2026 (con sus propios `assets/`)
 
 Nueva entrega: regenerar con `ib-entregas/build/build.py` y hacer push.
