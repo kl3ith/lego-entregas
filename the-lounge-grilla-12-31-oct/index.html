@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Grilla del 12 al 31 de octubre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme:light;
+    --paper:#ffffff;--ink:#111111;--ink-soft:#333333;--muted:#767672;
+    --line:#e2e2dc;--board:#f1f1ec;--col:#e6e6df;--yellow:#ffcd11;
+    --ok:#4bce97;--fix:#e2483d;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--board);color:var(--ink);display:flex;flex-direction:column;
+    font-family:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font:inherit;color:inherit}
+  .brandbar{height:3px;background:var(--yellow);flex:0 0 auto}
+
+  .top{background:var(--paper);border-bottom:1px solid var(--line);flex:0 0 auto}
+  .top-inner{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 20px}
+  .wordmark{display:flex;align-items:baseline;gap:7px}
+  .wordmark .product{font-size:13px;color:var(--ink-soft)}
+  .wordmark .dot{width:5px;height:5px;border-radius:50%;background:var(--yellow);align-self:center}
+  .wordmark .lego{font-weight:700;font-size:18px;letter-spacing:-.03em;line-height:1}
+  .wordmark .mkt{font-weight:600;font-size:9.5px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+  .sep{width:1px;height:26px;background:var(--line)}
+  .heading{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;min-width:0}
+  .kicker{display:flex;align-items:center;gap:7px;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:600}
+  .kicker::before{content:"";width:8px;height:8px;background:var(--yellow)}
+  .heading h1{font-size:19px;font-weight:700;letter-spacing:-.015em;line-height:1.2}
+  .heading .subtitle{font-size:13px;color:var(--muted)}
+  .hint{margin-left:auto;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+
+  /* Tablero: columnas por día que se desplazan a la derecha; cada columna se desplaza hacia abajo por dentro */
+  .board{
+    flex:1 1 auto;min-height:0;display:flex;align-items:flex-start;gap:12px;
+    overflow-x:auto;overflow-y:hidden;padding:16px 20px 18px;scroll-snap-type:x proximity;
+  }
+  .col{
+    flex:0 0 284px;max-height:100%;display:flex;flex-direction:column;
+    background:var(--col);border-radius:14px;scroll-snap-align:start;
+  }
+  .col-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px 8px}
+  .col-name{font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+  .col-count{font-size:12px;color:var(--muted);font-weight:600}
+  .col-cards{overflow-y:auto;padding:4px 8px 10px;display:flex;flex-direction:column;gap:9px}
+  .card{
+    display:block;flex:0 0 auto;width:100%;text-align:left;background:var(--paper);border:0;border-radius:10px;
+    overflow:hidden;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.12);transition:box-shadow .12s, transform .12s;
+  }
+  .card:hover{box-shadow:0 0 0 2px var(--ink)}
+  .card:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .cover{position:relative;background:#1b1b1b}
+  .cover img{display:block;width:100%;max-height:360px;object-fit:cover;object-position:top}
+  .play{
+    position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;
+    background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;
+  }
+  .play::after{content:"";border-left:14px solid #fff;border-top:9px solid transparent;border-bottom:9px solid transparent;margin-left:4px}
+  .count-badge{
+    position:absolute;right:8px;top:8px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;font-weight:600;
+    border-radius:99px;padding:3px 9px;
+  }
+  .card-body{padding:9px 12px 11px}
+  .label{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    border-radius:4px;padding:2px 8px;margin-bottom:6px;background:var(--yellow);color:var(--ink)}
+  .label.ok{background:var(--ok)}
+  .label.fix{background:var(--fix);color:#fff}
+  .card-title{font-size:13.5px;font-weight:500;line-height:1.35}
+  .meta{display:flex;gap:12px;margin-top:7px;color:var(--muted);font-size:12px;align-items:center}
+  .meta svg{width:14px;height:14px;vertical-align:-2px;margin-right:3px}
+
+  /* Visor de la pieza */
+  .viewer{position:fixed;inset:0;z-index:50;background:rgba(17,17,17,.82);display:none;align-items:center;justify-content:center;padding:24px}
+  .viewer.open{display:flex}
+  .sheet{
+    background:var(--paper);border-radius:14px;overflow:hidden;width:min(1120px,100%);max-height:100%;
+    display:grid;grid-template-columns:minmax(0,1fr) 380px;
+  }
+  .stage{background:#161616;display:flex;flex-direction:column;min-height:0}
+  .stage-main{position:relative;flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:18px;min-height:0}
+  .stage-main img,.stage-main video{max-width:100%;max-height:calc(100vh - 170px);display:block;border-radius:6px;background:#161616}
+  .nav{
+    position:absolute;top:50%;margin-top:-22px;width:44px;height:44px;border-radius:50%;border:0;cursor:pointer;
+    background:rgba(255,255,255,.9);font-size:22px;line-height:44px;text-align:center;
+  }
+  .nav.prev{left:12px}.nav.next{right:12px}
+  .nav:hover{background:var(--yellow)}
+  .strip{display:flex;gap:8px;padding:0 18px 16px;overflow-x:auto;justify-content:center}
+  .strip button{border:2px solid transparent;border-radius:6px;padding:0;background:none;cursor:pointer;flex:0 0 auto;opacity:.6}
+  .strip button.on{border-color:var(--yellow);opacity:1}
+  .strip img{display:block;height:64px;border-radius:4px}
+  .info{padding:22px 24px;display:flex;flex-direction:column;min-height:0;border-left:1px solid var(--line)}
+  .info-top{display:flex;align-items:flex-start;gap:10px}
+  .info-day{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+  .info h2{font-size:18px;font-weight:700;letter-spacing:-.01em;margin-top:4px;line-height:1.3}
+  .close{margin-left:auto;border:0;background:none;font-size:26px;line-height:1;cursor:pointer;padding:0 4px;color:var(--ink-soft)}
+  .close:hover{color:var(--ink)}
+  .info .label{margin:12px 0 0}
+  .copy{white-space:pre-line;color:var(--ink-soft);font-size:14px;line-height:1.65;margin-top:16px;overflow-y:auto;min-height:0;flex:1 1 auto}
+  .copy.empty{color:var(--muted);font-style:italic}
+  .actions{display:flex;flex-wrap:wrap;gap:10px;padding-top:16px;margin-top:14px;border-top:1px solid var(--line)}
+  .btn{
+    font-size:12px;font-weight:600;letter-spacing:.02em;border-radius:8px;padding:9px 14px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px;transition:.12s;border:1px solid var(--ink);
+  }
+  .btn.light{background:var(--paper);color:var(--ink)}
+  .btn.dark{background:var(--ink);color:var(--paper)}
+  .btn.dark::after{content:"\2193";font-weight:700}
+  .btn:hover,.btn.ok{background:var(--yellow);border-color:var(--yellow);color:var(--ink)}
+  .btn.busy{opacity:.6;pointer-events:none}
+
+  @media (max-width:820px){
+    .top-inner{padding:10px 14px;gap:10px}
+    .sep,.hint{display:none}
+    .heading h1{font-size:16px}
+    .board{padding:12px 14px 14px;scroll-snap-type:x mandatory}
+    .col{flex-basis:82vw}
+    .viewer{padding:0}
+    .sheet{grid-template-columns:1fr;border-radius:0;height:100%;overflow-y:auto;grid-template-rows:auto auto}
+    .stage-main img,.stage-main video{max-height:68vh}
+    .info{border-left:0}
+    .copy{overflow:visible}
+  }
+</style>
+</head>
+<body>
+<div class="brandbar"></div>
+<header class="top">
+  <div class="top-inner">
+    <div class="wordmark"><span class="product">entregas</span><span class="dot"></span><span class="lego">lego</span><span class="mkt">mkt</span></div>
+    <span class="sep"></span>
+    <div class="heading">
+      <span class="kicker">The Lounge Panamá</span>
+      <h1>Grilla del 12 al 31 de octubre</h1>
+      <span class="subtitle">Octubre 2026</span>
+    </div>
+    <span class="hint">Desliza a la derecha para ver todos los días · toca una pieza para abrirla</span>
+  </div>
+</header>
+
+<main class="board" id="board"></main>
+
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="v-title">
+  <div class="sheet">
+    <div class="stage">
+      <div class="stage-main" id="v-media"></div>
+      <div class="strip" id="v-strip"></div>
+    </div>
+    <div class="info">
+      <div class="info-top">
+        <div><div class="info-day" id="v-day"></div><h2 id="v-title"></h2></div>
+        <button class="close" id="v-close" aria-label="Cerrar">×</button>
+      </div>
+      <div id="v-label"></div>
+      <div class="copy" id="v-copy"></div>
+      <div class="actions">
+        <button class="btn light" id="v-copybtn">Copiar texto</button>
+        <button class="btn dark" id="v-dl">Descargar</button>
+        <button class="btn light" id="v-dlall">Descargar todas</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var DATA = [{"nombre": "Feed", "cards": [{"titulo": "Así se verá el feed (12 al 31 de octubre)", "etiqueta": "", "copy": "2 posts y 1 carrusel por semana, más las efemérides ya entregadas (Día del Jefe y Halloween).\nTodas las historias van en video y con música: tomas reales de nuestras sedes con gente, fotos de la sesión de julio y del evento corporativo de agosto en San Francisco animadas, y las tomas del reel de Halloween.\nNavidad: una historia por semana (jueves), vendiendo los paquetes ya aprobados.\nDescorche: «sin descorche» solo para Marbella y Obarrio; en San Francisco aplica a licores.", "files": [{"kind": "image", "src": "assets/00-feed-preview.png", "dl": "The Lounge Panamá - Feed - Así se verá el feed (12 al 31 de octubre).png", "view": "assets/_web/00-feed-preview.jpg", "thumb": "assets/_web/00-feed-preview-t.jpg", "ratio": "1088/1948"}]}]}, {"nombre": "Lunes 12 de octubre", "cards": [{"titulo": "6:00 PM - POST", "etiqueta": "", "copy": "¿Taller, capacitación o lluvia de ideas? Sácalo de la sala de juntas. 💡\n\nEn The Lounge tu equipo trabaja a puerta cerrada, con pantallas para presentar, WiFi rápido y café listo. Reservas por horas (desde 2) y eliges la sede que te quede más cerca.\n\n📍 Marbella | Obarrio | San Francisco\n\n📲 Cotiza por WhatsApp (wa.link/0la553) o en theloungepanama.com\n\n#TheLoungePanama #CapacitacionesPTY #TalleresPanama #EventosCorporativosPTY", "files": [{"kind": "image", "src": "assets/lun12-post-taller.png", "dl": "The Lounge Panamá - Lunes 12 de octubre - 6-00 PM - POST.png", "view": "assets/_web/lun12-post-taller.jpg", "thumb": "assets/_web/lun12-post-taller-t.jpg", "ratio": "1080/1350"}]}, {"titulo": "5:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Video real: reunión corporativa en Marbella.\nTexto del arte: Lunes de oficina · ¿Cuándo salió tu equipo de la oficina por última vez?\n\nSticker de encuesta al centro: «Este mes 🙌» / «Ni me acuerdo 😅»", "files": [{"kind": "video", "src": "assets/lun12-h5pm-equipo.mp4", "dl": "The Lounge Panamá - Lunes 12 de octubre - 5-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/lun12-h5pm-equipo-t.jpg", "poster": "assets/_web/lun12-h5pm-equipo-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Video real: mini bar de Obarrio.\nTexto del arte: Mini bar adentro · Snacks y bebidas listos. Pagas solo lo que consumes, al final.\n\nSticker de preguntas: «¿Qué no puede faltar en tu mini bar?»", "files": [{"kind": "video", "src": "assets/lun12-h6pm-minibar.mp4", "dl": "The Lounge Panamá - Lunes 12 de octubre - 6-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/lun12-h6pm-minibar-t.jpg", "poster": "assets/_web/lun12-h6pm-minibar-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Martes 13 de octubre", "cards": [{"titulo": "5:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Texto del arte: Quiz · ¿Cuál es el mínimo para reservar? Tip: abrimos 24/7.\n\nSticker de quiz al centro: «1 hora» / «2 horas» ✅ / «4 horas»", "files": [{"kind": "video", "src": "assets/mar13-h5pm-quiz-horas.mp4", "dl": "The Lounge Panamá - Martes 13 de octubre - 5-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/mar13-h5pm-quiz-horas-t.jpg", "poster": "assets/_web/mar13-h5pm-quiz-horas-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Video real: juegos de mesa.\nTexto del arte: ¿Dominó o cartas? Los juegos de mesa ya vienen con tu lounge.\n\nSticker de encuesta: «Dominó 🁢» / «Cartas 🃏»", "files": [{"kind": "video", "src": "assets/mar13-h6pm-juegos.mp4", "dl": "The Lounge Panamá - Martes 13 de octubre - 6-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/mar13-h6pm-juegos-t.jpg", "poster": "assets/_web/mar13-h6pm-juegos-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Miércoles 14 de octubre", "cards": [{"titulo": "6:00 PM - POST", "etiqueta": "", "copy": "¿Saliste temprano? El after office se disfruta mejor sin mesas compartidas. 🥂\n\nReserva un lounge para tu grupo: tu música, tus tragos y billar, karaoke o juegos de mesa incluidos. Desde 2 horas.\n\n📍 Marbella | Obarrio | San Francisco\n\n📲 Reserva por WhatsApp (wa.link/0la553) o en theloungepanama.com\n\n#TheLoungePanama #AfterOfficePTY #PlanesPanama #LoungePrivado", "files": [{"kind": "image", "src": "assets/mie14-post-after-office.png", "dl": "The Lounge Panamá - Miércoles 14 de octubre - 6-00 PM - POST.png", "view": "assets/_web/mie14-post-after-office.jpg", "thumb": "assets/_web/mie14-post-after-office-t.jpg", "ratio": "1080/1350"}]}, {"titulo": "5:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Acompaña el post del día.\nTexto del arte: ¿Miércoles de after office?\n\nSticker de enlace: wa.link/0la553 («Reserva tu lounge»), sobre la pastilla verde.", "files": [{"kind": "video", "src": "assets/mie14-h5pm-after-office.mp4", "dl": "The Lounge Panamá - Miércoles 14 de octubre - 5-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/mie14-h5pm-after-office-t.jpg", "poster": "assets/_web/mie14-h5pm-after-office-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Video real: karaoke en Obarrio.\nTexto del arte: ¿Quién canta primero?\n\nSticker de encuesta al centro: «Yo 🎤» / «Mi amiga 😂»", "files": [{"kind": "video", "src": "assets/mie14-h6pm-karaoke.mp4", "dl": "The Lounge Panamá - Miércoles 14 de octubre - 6-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/mie14-h6pm-karaoke-t.jpg", "poster": "assets/_web/mie14-h6pm-karaoke-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Jueves 15 de octubre", "cards": [{"titulo": "6:00 PM - POST (carrusel)", "etiqueta": "", "copy": "Tres sedes, tres estilos. ¿Cuál va con tu plan? 👇\n\nObarrio: hasta 25 personas, diseño industrial y la opción más accesible. Ideal para cumpleaños, reuniones de equipo y noches de juegos.\n\nMarbella: hasta 40 personas, azul, con arte y mesa de billar. Ideal para fiestas, after office y celebraciones medianas.\n\nSan Francisco: de 50 hasta 150 personas, pantalla LED de 15 m² y terraza. Ideal para eventos corporativos, lanzamientos y bodas.\n\n¿Todavía no decides? Escríbenos y te ayudamos a elegir.\n\n📲 wa.link/0la553 · theloungepanama.com\n\n#TheLoungePanama #EventosPrivadosPTY #SalonesPanama #PlanesPanama", "files": [{"kind": "image", "src": "assets/jue15-carrusel-1.png", "dl": "The Lounge Panamá - Jueves 15 de octubre - 6-00 PM - POST (carrusel) - 1.png", "view": "assets/_web/jue15-carrusel-1.jpg", "thumb": "assets/_web/jue15-carrusel-1-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/jue15-carrusel-2.png", "dl": "The Lounge Panamá - Jueves 15 de octubre - 6-00 PM - POST (carrusel) - 2.png", "view": "assets/_web/jue15-carrusel-2.jpg", "thumb": "assets/_web/jue15-carrusel-2-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/jue15-carrusel-3.png", "dl": "The Lounge Panamá - Jueves 15 de octubre - 6-00 PM - POST (carrusel) - 3.png", "view": "assets/_web/jue15-carrusel-3.jpg", "thumb": "assets/_web/jue15-carrusel-3-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/jue15-carrusel-4.png", "dl": "The Lounge Panamá - Jueves 15 de octubre - 6-00 PM - POST (carrusel) - 4.png", "view": "assets/_web/jue15-carrusel-4.jpg", "thumb": "assets/_web/jue15-carrusel-4-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/jue15-carrusel-5.png", "dl": "The Lounge Panamá - Jueves 15 de octubre - 6-00 PM - POST (carrusel) - 5.png", "view": "assets/_web/jue15-carrusel-5.jpg", "thumb": "assets/_web/jue15-carrusel-5-t.jpg", "ratio": "1080/1350"}]}, {"titulo": "5:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Videos reales de las tres sedes, cada una rotulada con su capacidad.\nTexto del arte: Tres sedes, tres estilos. ¿Cuál es tu favorita?\n\nSticker de encuesta: «Obarrio» / «Marbella» / «San Francisco»", "files": [{"kind": "video", "src": "assets/jue15-h5pm-tres-sedes.mp4", "dl": "The Lounge Panamá - Jueves 15 de octubre - 5-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/jue15-h5pm-tres-sedes-t.jpg", "poster": "assets/_web/jue15-h5pm-tres-sedes-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA (VIDEO) · NAVIDAD", "etiqueta": "", "copy": "Única historia navideña de la semana. Tomas de la promo navideña de Marbella (agosto 2026), sin sus subtítulos.\nTexto del arte: Navidad 2026 · Desayuno y brunch corporativo · Desde $499 + ITBMS · Marbella, Obarrio y San Francisco · Escríbenos NAVIDAD por DM.\n\nSticker de enlace: wa.link/0la553 («Cotiza tu fecha»)\nSugerencia: guardarla en la destacada «Navidad 2026».", "files": [{"kind": "video", "src": "assets/jue15-h6pm-navidad-desayuno.mp4", "dl": "The Lounge Panamá - Jueves 15 de octubre - 6-00 PM - HISTORIA (VIDEO) · NAVIDAD.mp4", "thumb": "assets/_web/jue15-h6pm-navidad-desayuno-t.jpg", "poster": "assets/_web/jue15-h6pm-navidad-desayuno-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Viernes 16 de octubre", "cards": [{"titulo": "12:00 PM - POST · Día del Jefe", "etiqueta": "", "copy": "Efeméride ya entregada. Cambiamos la foto por una del evento corporativo de agosto en San Francisco, porque la clienta no quiere fotos de personas mayores recortadas.\n\nHoy celebra el que lidera. 🥂\n\nSorprende a tu jefe (o a tu equipo) con un brindis privado en The Lounge. Reservas por horas y con todo listo para celebrar.\n\n📍 Marbella · Obarrio · San Francisco\nReserva en theloungepanama.com o escríbenos al (507) 6315-8888.\n\n#TheLoungePanama #DiaDelJefe #CelebracionesCorporativas #EventosPrivadosPTY", "files": [{"kind": "image", "src": "assets/vie16-post-dia-del-jefe.png", "dl": "The Lounge Panamá - Viernes 16 de octubre - 12-00 PM - POST · Día del Jefe.png", "view": "assets/_web/vie16-post-dia-del-jefe.jpg", "thumb": "assets/_web/vie16-post-dia-del-jefe-t.jpg", "ratio": "1080/1350"}]}, {"titulo": "12:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Historia de la efeméride, animada.\nSticker de enlace: wa.link/0la553 («Reserva el brindis»)", "files": [{"kind": "video", "src": "assets/vie16-h12pm-dia-del-jefe.mp4", "dl": "The Lounge Panamá - Viernes 16 de octubre - 12-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/vie16-h12pm-dia-del-jefe-t.jpg", "poster": "assets/_web/vie16-h12pm-dia-del-jefe-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "3:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Video real: fiesta en Marbella.\nTexto del arte: Viernes. Tu música, tu gente, tu lounge.\n\nSticker de enlace: wa.link/0la553 («Reserva tu noche»), sobre la pastilla rosada.", "files": [{"kind": "video", "src": "assets/vie16-h3pm-viernes.mp4", "dl": "The Lounge Panamá - Viernes 16 de octubre - 3-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/vie16-h3pm-viernes-t.jpg", "poster": "assets/_web/vie16-h3pm-viernes-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Sábado 17 de octubre", "cards": [{"titulo": "12:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Video real: billar.\nTexto del arte: ¿Una partida? Billar, dardos y juegos de mesa: ya vienen con tu lounge.\n\nSticker de encuesta: «Billar 🎱» / «Dardos 🎯»", "files": [{"kind": "video", "src": "assets/sab17-h12pm-billar.mp4", "dl": "The Lounge Panamá - Sábado 17 de octubre - 12-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/sab17-h12pm-billar-t.jpg", "poster": "assets/_web/sab17-h12pm-billar-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "3:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Video real: cumpleaños.\nTexto del arte: ¿Cumples en noviembre? Tú traes el pastel. Nosotros, el lugar.\n\nSticker de enlace: wa.link/0la553 («Separa tu fecha»), sobre la pastilla verde.", "files": [{"kind": "video", "src": "assets/sab17-h3pm-cumple.mp4", "dl": "The Lounge Panamá - Sábado 17 de octubre - 3-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/sab17-h3pm-cumple-t.jpg", "poster": "assets/_web/sab17-h3pm-cumple-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Domingo 18 de octubre", "cards": [{"titulo": "12:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Video real: aniversario corporativo en San Francisco (agosto 2026).\nTexto del arte: Así se vivió · Aniversario corporativo en San Francisco.\n\nSticker de emoji deslizable: 👏", "files": [{"kind": "video", "src": "assets/dom18-h12pm-asi-se-vivio.mp4", "dl": "The Lounge Panamá - Domingo 18 de octubre - 12-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/dom18-h12pm-asi-se-vivio-t.jpg", "poster": "assets/_web/dom18-h12pm-asi-se-vivio-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "3:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Texto del arte: ¿Qué celebrarías en un lounge privado? Cuéntanos y te armamos la idea.\n\nSticker de preguntas al centro: «Cuéntanos tu idea»", "files": [{"kind": "video", "src": "assets/dom18-h3pm-pregunta.mp4", "dl": "The Lounge Panamá - Domingo 18 de octubre - 3-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/dom18-h3pm-pregunta-t.jpg", "poster": "assets/_web/dom18-h3pm-pregunta-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Lunes 19 de octubre", "cards": [{"titulo": "6:00 PM - POST", "etiqueta": "", "copy": "¿Tu equipo se reúne todas las semanas? Que tenga su propio espacio. 💼\n\nCon la membresía de The Lounge reservas 10 horas al mes en Marbella u Obarrio con 25% de descuento: la hora queda en $90 en Marbella y en $75 en Obarrio. Las usas en una o varias visitas y tienes locker personal. Sujeto a disponibilidad.\n\n📲 Escríbenos MEMBRESÍA por WhatsApp: wa.link/0la553\n\n#TheLoungePanama #MembresiaCorporativa #ReunionesPTY #OficinaFlexible", "files": [{"kind": "image", "src": "assets/lun19-post-membresia.png", "dl": "The Lounge Panamá - Lunes 19 de octubre - 6-00 PM - POST.png", "view": "assets/_web/lun19-post-membresia.jpg", "thumb": "assets/_web/lun19-post-membresia-t.jpg", "ratio": "1080/1350"}]}, {"titulo": "5:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Acompaña el post del día.\nTexto del arte: ¿Tu equipo se reúne cada semana? 25% off · Membresía: 10 horas al mes en Marbella u Obarrio y locker personal.\n\nSticker de enlace: theloungepanama.com/membresias/ («Ver membresía»)", "files": [{"kind": "video", "src": "assets/lun19-h5pm-membresia.mp4", "dl": "The Lounge Panamá - Lunes 19 de octubre - 5-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/lun19-h5pm-membresia-t.jpg", "poster": "assets/_web/lun19-h5pm-membresia-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Video real: amenidades de Obarrio.\nTexto del arte: Obarrio · Hasta 25 personas · dardos, billar y pantalla gigante.\n\nSticker de enlace: theloungepanama.com/the-lounge-obarrio/ («Conoce Obarrio»)", "files": [{"kind": "video", "src": "assets/lun19-h6pm-obarrio.mp4", "dl": "The Lounge Panamá - Lunes 19 de octubre - 6-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/lun19-h6pm-obarrio-t.jpg", "poster": "assets/_web/lun19-h6pm-obarrio-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Martes 20 de octubre", "cards": [{"titulo": "5:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Foto real del evento corporativo de agosto en San Francisco.\nTexto del arte: ¿No quieres organizar nada? Te conectamos con catering, meseros y decoración.\n\nSticker de enlace: wa.link/0la553 («Escríbenos tu idea»), sobre la pastilla mostaza.", "files": [{"kind": "video", "src": "assets/mar20-h5pm-concierge.mp4", "dl": "The Lounge Panamá - Martes 20 de octubre - 5-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/mar20-h5pm-concierge-t.jpg", "poster": "assets/_web/mar20-h5pm-concierge-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Video real: lanzamiento de marca en San Francisco.\nTexto del arte: San Francisco · Lanzamientos con todo. De 50 hasta 150 personas · pantalla LED de 15 m².\n\nSticker de enlace: theloungepanama.com/the-lounge-san-francisco/ («Conoce San Francisco»)", "files": [{"kind": "video", "src": "assets/mar20-h6pm-sf-marcas.mp4", "dl": "The Lounge Panamá - Martes 20 de octubre - 6-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/mar20-h6pm-sf-marcas-t.jpg", "poster": "assets/_web/mar20-h6pm-sf-marcas-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Miércoles 21 de octubre", "cards": [{"titulo": "6:00 PM - POST", "etiqueta": "", "copy": "Antes de salir, la previa. 🍸\n\nCon el paquete Pre-Party tienes tu lounge de 5:00 a 11:00 p. m. para arrancar la noche con tu gente: tu música, tus tragos y cero filas.\n\n¿Ya tienes plan para el finde de Halloween? Es buen momento para reservar.\n\n📍 Marbella | Obarrio\n\n📲 Escríbenos PRE-PARTY por WhatsApp (wa.link/0la553) o reserva en theloungepanama.com\n\n#TheLoungePanama #PreParty #PlanesPanama #HalloweenPTY", "files": [{"kind": "image", "src": "assets/mie21-post-previa.png", "dl": "The Lounge Panamá - Miércoles 21 de octubre - 6-00 PM - POST.png", "view": "assets/_web/mie21-post-previa.jpg", "thumb": "assets/_web/mie21-post-previa-t.jpg", "ratio": "1080/1350"}]}, {"titulo": "5:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Texto del arte: Para tu reunión · Presenta desde tu laptop, sin cables. Chromecast, Apple TV o HDMI. Funciona con Mac y PC.\n\nSticker de encuesta: «Mac 💻» / «PC 🖥️»", "files": [{"kind": "video", "src": "assets/mie21-h5pm-sin-cables.mp4", "dl": "The Lounge Panamá - Miércoles 21 de octubre - 5-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/mie21-h5pm-sin-cables-t.jpg", "poster": "assets/_web/mie21-h5pm-sin-cables-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Acompaña el post del día. Video real: fiesta en Obarrio.\nTexto del arte: La previa empieza aquí. Pre-Party de 5:00 a 11:00 p. m.\n\nSticker de enlace: wa.link/0la553 («Reserva tu previa»), sobre la pastilla naranja.", "files": [{"kind": "video", "src": "assets/mie21-h6pm-la-previa.mp4", "dl": "The Lounge Panamá - Miércoles 21 de octubre - 6-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/mie21-h6pm-la-previa-t.jpg", "poster": "assets/_web/mie21-h6pm-la-previa-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Jueves 22 de octubre", "cards": [{"titulo": "5:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Toma del reel de Halloween (la bruja en la entrada de San Francisco).\nTexto del arte: Halloween · 31 oct · ¿De qué te disfrazas? Tu fiesta de disfraces, a puerta cerrada.\n\nSticker de encuesta al centro: «Bruja 🧙‍♀️» / «Hombre lobo 🐺»", "files": [{"kind": "video", "src": "assets/jue22-h5pm-disfraz.mp4", "dl": "The Lounge Panamá - Jueves 22 de octubre - 5-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/jue22-h5pm-disfraz-t.jpg", "poster": "assets/_web/jue22-h5pm-disfraz-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA (VIDEO) · NAVIDAD", "etiqueta": "", "copy": "Única historia navideña de la semana. Tomas de la promo navideña de San Francisco (agosto 2026), sin sus subtítulos.\nTexto del arte: Navidad 2026 · Tu fiesta de fin de año en San Francisco · De 50 hasta 150 personas · paquetes Premium y Diamond · Escríbenos NAVIDAD por DM.\n\nSticker de enlace: wa.link/0la553 («Cotiza tu fecha»)\nSugerencia: guardarla en la destacada «Navidad 2026».", "files": [{"kind": "video", "src": "assets/jue22-h6pm-navidad-sf.mp4", "dl": "The Lounge Panamá - Jueves 22 de octubre - 6-00 PM - HISTORIA (VIDEO) · NAVIDAD.mp4", "thumb": "assets/_web/jue22-h6pm-navidad-sf-t.jpg", "poster": "assets/_web/jue22-h6pm-navidad-sf-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Viernes 23 de octubre", "cards": [{"titulo": "6:00 PM - POST (carrusel)", "etiqueta": "", "copy": "Llegas y todo está listo. 🎱🎤🎲\n\nCada lounge trae billar y dardos, karaoke, juegos de mesa, pantallas con WiFi para proyectar sin cables, mini bar y cocina con Nespresso. Tú solo traes a tu gente.\n\nDel mini bar pagas solo lo que consumes, al final.\n\n📍 Marbella | Obarrio | San Francisco\n\n📲 Reserva por WhatsApp (wa.link/0la553) o en theloungepanama.com\n\n#TheLoungePanama #LoungePrivado #PlanesPanama #EventosPrivadosPTY", "files": [{"kind": "image", "src": "assets/vie23-carrusel-1.png", "dl": "The Lounge Panamá - Viernes 23 de octubre - 6-00 PM - POST (carrusel) - 1.png", "view": "assets/_web/vie23-carrusel-1.jpg", "thumb": "assets/_web/vie23-carrusel-1-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/vie23-carrusel-2.png", "dl": "The Lounge Panamá - Viernes 23 de octubre - 6-00 PM - POST (carrusel) - 2.png", "view": "assets/_web/vie23-carrusel-2.jpg", "thumb": "assets/_web/vie23-carrusel-2-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/vie23-carrusel-3.png", "dl": "The Lounge Panamá - Viernes 23 de octubre - 6-00 PM - POST (carrusel) - 3.png", "view": "assets/_web/vie23-carrusel-3.jpg", "thumb": "assets/_web/vie23-carrusel-3-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/vie23-carrusel-4.png", "dl": "The Lounge Panamá - Viernes 23 de octubre - 6-00 PM - POST (carrusel) - 4.png", "view": "assets/_web/vie23-carrusel-4.jpg", "thumb": "assets/_web/vie23-carrusel-4-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/vie23-carrusel-5.png", "dl": "The Lounge Panamá - Viernes 23 de octubre - 6-00 PM - POST (carrusel) - 5.png", "view": "assets/_web/vie23-carrusel-5.jpg", "thumb": "assets/_web/vie23-carrusel-5-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/vie23-carrusel-6.png", "dl": "The Lounge Panamá - Viernes 23 de octubre - 6-00 PM - POST (carrusel) - 6.png", "view": "assets/_web/vie23-carrusel-6.jpg", "thumb": "assets/_web/vie23-carrusel-6-t.jpg", "ratio": "1080/1350"}]}, {"titulo": "12:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Acompaña el carrusel del día. Videos reales de Obarrio.\nTexto del arte: Llegas y todo está listo. Luces, sonido, pantallas y WiFi se controlan desde una pantalla táctil.\n\nSticker de emoji deslizable: 🤩", "files": [{"kind": "video", "src": "assets/vie23-h12pm-todo-listo.mp4", "dl": "The Lounge Panamá - Viernes 23 de octubre - 12-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/vie23-h12pm-todo-listo-t.jpg", "poster": "assets/_web/vie23-h12pm-todo-listo-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "3:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Video real: fiesta de disfraces en Marbella.\nTexto del arte: Sábado 31 · Halloween a puerta cerrada.\n\nSticker de enlace: wa.link/0la553 («Reserva tu lounge»), sobre la pastilla naranja.", "files": [{"kind": "video", "src": "assets/vie23-h3pm-halloween-fiesta.mp4", "dl": "The Lounge Panamá - Viernes 23 de octubre - 3-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/vie23-h3pm-halloween-fiesta-t.jpg", "poster": "assets/_web/vie23-h3pm-halloween-fiesta-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Sábado 24 de octubre", "cards": [{"titulo": "12:00 PM - POST · Halloween", "etiqueta": "", "copy": "Efeméride ya entregada. La adelantamos una semana para que la gente reserve a tiempo (Halloween cae sábado 31).\n\nTu noche de brujas, tus reglas. 🎃\n\nFiesta, pre-party o Teen Party en tu propio lounge: música y pantallas a tu control, sin descorche y sin nadie encima.\n\n📍 Marbella · Obarrio\nReserva tu fecha en theloungepanama.com o escríbenos al (507) 6315-8888.\n\n#TheLoungePanama #HalloweenPTY #FiestaPrivada #TeenParty", "files": [{"kind": "image", "src": "assets/sab24-post-halloween.png", "dl": "The Lounge Panamá - Sábado 24 de octubre - 12-00 PM - POST · Halloween.png", "view": "assets/_web/sab24-post-halloween.jpg", "thumb": "assets/_web/sab24-post-halloween-t.jpg", "ratio": "1080/1350"}]}, {"titulo": "12:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Historia de la efeméride, animada.\nSticker de cuenta regresiva: «Halloween», 31 de octubre.", "files": [{"kind": "video", "src": "assets/sab24-h12pm-halloween.mp4", "dl": "The Lounge Panamá - Sábado 24 de octubre - 12-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/sab24-h12pm-halloween-t.jpg", "poster": "assets/_web/sab24-h12pm-halloween-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "3:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Video real: fiesta en Marbella.\nTexto del arte: Marbella · Hasta 40 personas en fiesta. Tú pones la música.\n\nSticker de enlace: theloungepanama.com/the-lounge-marbella/ («Conoce Marbella»)", "files": [{"kind": "video", "src": "assets/sab24-h3pm-marbella.mp4", "dl": "The Lounge Panamá - Sábado 24 de octubre - 3-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/sab24-h3pm-marbella-t.jpg", "poster": "assets/_web/sab24-h3pm-marbella-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Domingo 25 de octubre", "cards": [{"titulo": "12:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Video real: cena privada en San Francisco.\nTexto del arte: San Francisco · Cenas privadas para tu equipo o tus clientes.\n\nSticker de enlace: wa.link/0la553 («Cotiza tu cena»)", "files": [{"kind": "video", "src": "assets/dom25-h12pm-cena-sf.mp4", "dl": "The Lounge Panamá - Domingo 25 de octubre - 12-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/dom25-h12pm-cena-sf-t.jpg", "poster": "assets/_web/dom25-h12pm-cena-sf-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "3:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Calienta el post del miércoles.\nTexto del arte: ¿Qué harías con un feriado libre?\n\nSticker de encuesta debajo del recuadro: «Fiesta con amigos 🎉» / «Plan en familia 🏡»", "files": [{"kind": "video", "src": "assets/dom25-h3pm-feriados-encuesta.mp4", "dl": "The Lounge Panamá - Domingo 25 de octubre - 3-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/dom25-h3pm-feriados-encuesta-t.jpg", "poster": "assets/_web/dom25-h3pm-feriados-encuesta-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Lunes 26 de octubre", "cards": [{"titulo": "6:00 PM - POST", "etiqueta": "", "copy": "Cuando la lista de invitados pasa de 50, San Francisco es tu sede. ✨\n\nPantalla LED de 15 m², sonido de alta gama, iluminación LED, terraza, barra y entrada privada para eventos de 50 hasta 150 personas: lanzamientos, aniversarios, premiaciones y bodas.\n\n📲 Cotiza tu fecha por WhatsApp (wa.link/0la553) o en theloungepanama.com\n\n#TheLoungePanama #EventosCorporativosPTY #SanFranciscoPTY #LanzamientosPanama", "files": [{"kind": "image", "src": "assets/lun26-post-san-francisco.png", "dl": "The Lounge Panamá - Lunes 26 de octubre - 6-00 PM - POST.png", "view": "assets/_web/lun26-post-san-francisco.jpg", "thumb": "assets/_web/lun26-post-san-francisco-t.jpg", "ratio": "1080/1350"}]}, {"titulo": "5:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Acompaña el post del día. Foto real del aniversario corporativo de agosto.\nTexto del arte: San Francisco · Aniversarios, premiaciones y lanzamientos. De 50 hasta 150 personas, con pantalla LED de 15 m².\n\nSticker de enlace: theloungepanama.com/the-lounge-san-francisco/ («Conoce San Francisco»)", "files": [{"kind": "video", "src": "assets/lun26-h5pm-san-francisco.mp4", "dl": "The Lounge Panamá - Lunes 26 de octubre - 5-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/lun26-h5pm-san-francisco-t.jpg", "poster": "assets/_web/lun26-h5pm-san-francisco-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Toma del reel de Halloween (el hombre lobo).\nTexto del arte: Faltan 5 días · ¿Ya tienes lounge para Halloween?\n\nSticker de cuenta regresiva: «Halloween», 31 de octubre.", "files": [{"kind": "video", "src": "assets/lun26-h6pm-faltan-5.mp4", "dl": "The Lounge Panamá - Lunes 26 de octubre - 6-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/lun26-h6pm-faltan-5-t.jpg", "poster": "assets/_web/lun26-h6pm-faltan-5-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Martes 27 de octubre", "cards": [{"titulo": "5:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Texto del arte: Reunión productiva. Y si sobra tiempo, una partida.\n\nSticker de enlace: wa.link/0la553 («Reserva tu reunión»)", "files": [{"kind": "video", "src": "assets/mar27-h5pm-reunion.mp4", "dl": "The Lounge Panamá - Martes 27 de octubre - 5-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/mar27-h5pm-reunion-t.jpg", "poster": "assets/_web/mar27-h5pm-reunion-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Videos reales de eventos en Marbella y San Francisco.\nTexto del arte: ¿Quién trae la comida? Tú decides: tu catering o el de nuestros proveedores.\n\nSticker de preguntas: «¿Qué menú armarías?»", "files": [{"kind": "video", "src": "assets/mar27-h6pm-comida.mp4", "dl": "The Lounge Panamá - Martes 27 de octubre - 6-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/mar27-h6pm-comida-t.jpg", "poster": "assets/_web/mar27-h6pm-comida-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Miércoles 28 de octubre", "cards": [{"titulo": "6:00 PM - POST", "etiqueta": "", "copy": "Noviembre viene con feriados y los mejores planes se arman con tiempo. 🇵🇦\n\nReserva tu lounge para celebrar con familia o amigos: privado, a tu hora y con todo listo para que solo disfrutes. Marbella, Obarrio o San Francisco, desde 2 horas.\n\n📲 Separa tu fecha por WhatsApp (wa.link/0la553) o en theloungepanama.com\n\n#TheLoungePanama #FiestasPatriasPTY #FeriadosPanama #PlanesPanama", "files": [{"kind": "image", "src": "assets/mie28-post-feriados.png", "dl": "The Lounge Panamá - Miércoles 28 de octubre - 6-00 PM - POST.png", "view": "assets/_web/mie28-post-feriados.jpg", "thumb": "assets/_web/mie28-post-feriados-t.jpg", "ratio": "1080/1350"}]}, {"titulo": "5:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Acompaña el post del día.\nTexto del arte: Noviembre · Feriado largo, plan privado. Separa tu fecha en Marbella, Obarrio o San Francisco.\n\nSticker de enlace: wa.link/0la553 («Separa tu fecha»)", "files": [{"kind": "video", "src": "assets/mie28-h5pm-feriados.mp4", "dl": "The Lounge Panamá - Miércoles 28 de octubre - 5-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/mie28-h5pm-feriados-t.jpg", "poster": "assets/_web/mie28-h5pm-feriados-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Texto del arte: ¿Ya tienes fecha en mente? Escríbenos: te decimos qué sede está libre y cuál te conviene.\n\nSticker de enlace: wa.link/0la553 («Escríbenos»), sobre la pastilla naranja.", "files": [{"kind": "video", "src": "assets/mie28-h6pm-cotiza.mp4", "dl": "The Lounge Panamá - Miércoles 28 de octubre - 6-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/mie28-h6pm-cotiza-t.jpg", "poster": "assets/_web/mie28-h6pm-cotiza-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Jueves 29 de octubre", "cards": [{"titulo": "5:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Toma del reel de Halloween (la puerta).\nTexto del arte: 2 días para Halloween. Escríbenos HALLOWEEN por DM.\n\nSticker de cuenta regresiva: «Halloween», 31 de octubre.", "files": [{"kind": "video", "src": "assets/jue29-h5pm-faltan-2.mp4", "dl": "The Lounge Panamá - Jueves 29 de octubre - 5-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/jue29-h5pm-faltan-2-t.jpg", "poster": "assets/_web/jue29-h5pm-faltan-2-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA (VIDEO) · NAVIDAD", "etiqueta": "", "copy": "Única historia navideña de la semana. Tomas de la promo navideña de Obarrio (agosto 2026), sin sus subtítulos.\nTexto del arte: Navidad 2026 · ¿Desayuno, brunch, almuerzo o cena? Elige el plan navideño de tu equipo. Escríbenos NAVIDAD por DM.\n\nSticker de encuesta: «Desayuno ☕» / «Cena 🍷»\nSugerencia: guardarla en la destacada «Navidad 2026».", "files": [{"kind": "video", "src": "assets/jue29-h6pm-navidad-obarrio.mp4", "dl": "The Lounge Panamá - Jueves 29 de octubre - 6-00 PM - HISTORIA (VIDEO) · NAVIDAD.mp4", "thumb": "assets/_web/jue29-h6pm-navidad-obarrio-t.jpg", "poster": "assets/_web/jue29-h6pm-navidad-obarrio-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Viernes 30 de octubre", "cards": [{"titulo": "6:00 PM - POST (carrusel)", "etiqueta": "", "copy": "Lo que siempre nos preguntan, en 5 respuestas. 👇\n\n1. ¿Cuántas horas como mínimo? 2 horas, y abrimos 24/7.\n2. ¿Cómo entro? Con un pin exclusivo para tu reserva.\n3. ¿Puedo llevar comida y bebidas? Sí. Sin descorche en Marbella y Obarrio; en San Francisco, el descorche aplica a licores.\n4. ¿Hay cámaras adentro? No. Solo en la entrada.\n5. ¿Cómo reservo? En theloungepanama.com o por WhatsApp.\n\n¿Otra duda? Déjala en los comentarios. 💬\n\n📲 wa.link/0la553\n\n#TheLoungePanama #LoungePrivado #EventosPrivadosPTY #PlanesPanama", "files": [{"kind": "image", "src": "assets/vie30-carrusel-1.png", "dl": "The Lounge Panamá - Viernes 30 de octubre - 6-00 PM - POST (carrusel) - 1.png", "view": "assets/_web/vie30-carrusel-1.jpg", "thumb": "assets/_web/vie30-carrusel-1-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/vie30-carrusel-2.png", "dl": "The Lounge Panamá - Viernes 30 de octubre - 6-00 PM - POST (carrusel) - 2.png", "view": "assets/_web/vie30-carrusel-2.jpg", "thumb": "assets/_web/vie30-carrusel-2-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/vie30-carrusel-3.png", "dl": "The Lounge Panamá - Viernes 30 de octubre - 6-00 PM - POST (carrusel) - 3.png", "view": "assets/_web/vie30-carrusel-3.jpg", "thumb": "assets/_web/vie30-carrusel-3-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/vie30-carrusel-4.png", "dl": "The Lounge Panamá - Viernes 30 de octubre - 6-00 PM - POST (carrusel) - 4.png", "view": "assets/_web/vie30-carrusel-4.jpg", "thumb": "assets/_web/vie30-carrusel-4-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/vie30-carrusel-5.png", "dl": "The Lounge Panamá - Viernes 30 de octubre - 6-00 PM - POST (carrusel) - 5.png", "view": "assets/_web/vie30-carrusel-5.jpg", "thumb": "assets/_web/vie30-carrusel-5-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/vie30-carrusel-6.png", "dl": "The Lounge Panamá - Viernes 30 de octubre - 6-00 PM - POST (carrusel) - 6.png", "view": "assets/_web/vie30-carrusel-6.jpg", "thumb": "assets/_web/vie30-carrusel-6-t.jpg", "ratio": "1080/1350"}]}, {"titulo": "12:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Calienta el carrusel del día.\nTexto del arte: ¿Dudas antes de reservar? Hoy en el feed respondemos lo que más nos preguntan.\n\nSticker de preguntas: «Pregúntanos lo que quieras»", "files": [{"kind": "video", "src": "assets/vie30-h12pm-preguntas.mp4", "dl": "The Lounge Panamá - Viernes 30 de octubre - 12-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/vie30-h12pm-preguntas-t.jpg", "poster": "assets/_web/vie30-h12pm-preguntas-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "3:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Toma del reel de Halloween (Drácula).\nTexto del arte: Mañana es Halloween. ¿Plan de último minuto? Escríbenos y vemos disponibilidad.\n\nSticker de enlace: wa.link/0la553 («Escríbenos»)", "files": [{"kind": "video", "src": "assets/vie30-h3pm-manana.mp4", "dl": "The Lounge Panamá - Viernes 30 de octubre - 3-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/vie30-h3pm-manana-t.jpg", "poster": "assets/_web/vie30-h3pm-manana-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Sábado 31 de octubre", "cards": [{"titulo": "12:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Compartir en historias el reel de Halloween (publicado el sábado 3), con su audio.\nSticker de mención al reel o de enlace: wa.link/0la553 («Reserva hoy»)", "files": [{"kind": "video", "src": "assets/sab31-h12pm-reel-halloween.mp4", "dl": "The Lounge Panamá - Sábado 31 de octubre - 12-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/sab31-h12pm-reel-halloween-t.jpg", "poster": "assets/_web/sab31-h12pm-reel-halloween-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "3:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Toma del reel de Halloween (la momia).\nTexto del arte: ¡Feliz Halloween! Esta noche se celebra a puerta cerrada.\n\nSticker de emoji deslizable: 🎃", "files": [{"kind": "video", "src": "assets/sab31-h3pm-feliz-halloween.mp4", "dl": "The Lounge Panamá - Sábado 31 de octubre - 3-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/sab31-h3pm-feliz-halloween-t.jpg", "poster": "assets/_web/sab31-h3pm-feliz-halloween-poster.jpg", "ratio": "1080/1920"}]}]}];
+var ICON_COPY = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 4h10M3 8h10M3 12h6"/></svg>';
+var ICON_CLIP = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 4.5 5.4 9.6a1.6 1.6 0 0 0 2.3 2.3l5.4-5.4a3 3 0 0 0-4.3-4.3L3.5 7.5a4.4 4.4 0 0 0 6.2 6.2L13 10.4"/></svg>';
+function esc(s){ var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+function labelHtml(t){
+  if(!t) return "";
+  var k=t.toLowerCase(), cls=/aprob/.test(k)?" ok":(/correg|cambio/.test(k)?" fix":"");
+  return '<span class="label'+cls+'">'+esc(t)+'</span>';
+}
+
+var board=document.getElementById("board");
+DATA.forEach(function(col, ci){
+  var el=document.createElement("section"); el.className="col";
+  el.innerHTML='<div class="col-head"><span class="col-name">'+esc(col.nombre)+'</span><span class="col-count">'+col.cards.length+'</span></div><div class="col-cards"></div>';
+  var list=el.querySelector(".col-cards");
+  col.cards.forEach(function(card, ki){
+    var f=card.files[0], b=document.createElement("button"); b.className="card"; b.type="button";
+    var cover = f && f.thumb ? '<div class="cover"><img loading="lazy" alt="" style="aspect-ratio:'+f.ratio+'" src="'+f.thumb+'">'
+      + (f.kind==="video" ? '<span class="play"></span>' : '')
+      + (card.files.length>1 ? '<span class="count-badge">'+card.files.length+' slides</span>' : '') + '</div>' : '';
+    b.innerHTML = cover + '<div class="card-body">'+labelHtml(card.etiqueta)+'<div class="card-title">'+esc(card.titulo)+'</div>'
+      + '<div class="meta">'+(card.copy?'<span>'+ICON_COPY+'</span>':'')+(card.files.length?'<span>'+ICON_CLIP+card.files.length+'</span>':'')+'</div></div>';
+    b.addEventListener("click", function(){ openCard(ci, ki); });
+    list.appendChild(b);
+  });
+  board.appendChild(el);
+});
+
+/* Visor */
+var viewer=document.getElementById("viewer"), cur=null, idx=0, lastFocus=null;
+function openCard(ci, ki){
+  lastFocus=document.activeElement;
+  var col=DATA[ci], card=col.cards[ki]; cur=card; idx=0;
+  document.getElementById("v-day").textContent=col.nombre;
+  document.getElementById("v-title").textContent=card.titulo;
+  document.getElementById("v-label").innerHTML=labelHtml(card.etiqueta);
+  var c=document.getElementById("v-copy");
+  c.textContent=card.copy||"Sin copy (pieza de historia o de referencia).";
+  c.className="copy"+(card.copy?"":" empty");
+  document.getElementById("v-copybtn").style.display=card.copy?"":"none";
+  document.getElementById("v-dlall").style.display=card.files.length>1?"":"none";
+  var strip=document.getElementById("v-strip"); strip.innerHTML="";
+  if(card.files.length>1) card.files.forEach(function(f,i){
+    var t=document.createElement("button"); t.type="button"; t.setAttribute("aria-label","Slide "+(i+1));
+    t.innerHTML='<img alt="" src="'+f.thumb+'">'; t.addEventListener("click",function(){ show(i); }); strip.appendChild(t);
+  });
+  show(0);
+  viewer.classList.add("open"); document.body.style.overflow="hidden";
+  document.getElementById("v-close").focus();
+}
+function show(i){
+  var files=cur.files; if(!files.length){ document.getElementById("v-media").innerHTML=""; return; }
+  idx=(i+files.length)%files.length; var f=files[idx], m=document.getElementById("v-media");
+  var media = f.kind==="video"
+    ? '<video controls playsinline preload="metadata" '+(f.poster?'poster="'+f.poster+'" ':'')+'style="aspect-ratio:'+f.ratio+'" src="'+f.src+'"></video>'
+    : '<img alt="" style="aspect-ratio:'+f.ratio+'" src="'+f.view+'">';
+  var nav = files.length>1 ? '<button class="nav prev" type="button" aria-label="Anterior">‹</button><button class="nav next" type="button" aria-label="Siguiente">›</button>' : '';
+  m.innerHTML = media + nav;
+  if(files.length>1){
+    m.querySelector(".prev").onclick=function(){ show(idx-1); };
+    m.querySelector(".next").onclick=function(){ show(idx+1); };
+  }
+  [].forEach.call(document.querySelectorAll("#v-strip button"),function(b,j){ b.classList.toggle("on", j===idx); });
+  document.getElementById("v-dl").textContent = files.length>1 ? "Descargar slide "+(idx+1) : (f.kind==="video"?"Descargar video":"Descargar imagen");
+}
+function closeViewer(){
+  var v=document.querySelector("#v-media video"); if(v) v.pause();
+  viewer.classList.remove("open"); document.body.style.overflow=""; cur=null;
+  if(lastFocus) lastFocus.focus();
+}
+document.getElementById("v-close").onclick=closeViewer;
+viewer.addEventListener("click",function(e){ if(e.target===viewer) closeViewer(); });
+document.addEventListener("keydown",function(e){
+  if(!cur) return;
+  if(e.key==="Escape") closeViewer();
+  else if(e.key==="ArrowRight" && cur.files.length>1) show(idx+1);
+  else if(e.key==="ArrowLeft" && cur.files.length>1) show(idx-1);
+});
+
+document.getElementById("v-copybtn").onclick=function(){
+  var btn=this, text=cur.copy;
+  var done=function(){ btn.textContent="Copiado ✓"; btn.classList.add("ok"); setTimeout(function(){ btn.textContent="Copiar texto"; btn.classList.remove("ok"); },1600); };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done, fallback); } else fallback();
+  function fallback(){ var t=document.createElement("textarea"); t.value=text; document.body.appendChild(t); t.select(); try{document.execCommand("copy"); done();}catch(e){} document.body.removeChild(t); }
+};
+/* Descarga sin salir de la página (fetch + Blob); si no hay fetch, cae al <a download> nativo */
+function download(f, btn){
+  var a=document.createElement("a"); a.download=f.dl;
+  if(!(window.fetch && window.Blob && window.URL && URL.createObjectURL)){ a.href=f.src; document.body.appendChild(a); a.click(); a.remove(); return Promise.resolve(); }
+  if(btn) btn.classList.add("busy");
+  return fetch(f.src).then(function(r){ return r.blob(); }).then(function(b){
+    var u=URL.createObjectURL(b); a.href=u; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(u); }, 4000);
+  }).catch(function(){ a.href=f.src; document.body.appendChild(a); a.click(); a.remove(); })
+    .then(function(){ if(btn) btn.classList.remove("busy"); });
+}
+document.getElementById("v-dl").onclick=function(){ download(cur.files[idx], this); };
+document.getElementById("v-dlall").onclick=function(){
+  var btn=this, files=cur.files.slice(), i=0; btn.classList.add("busy");
+  (function next(){ if(i>=files.length){ btn.classList.remove("busy"); return; } download(files[i++]).then(function(){ setTimeout(next, 350); }); })();
+};
+</script>
+</body>
+</html>
