@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Grilla del 1 al 11 de octubre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme:light;
+    --paper:#ffffff;--ink:#111111;--ink-soft:#333333;--muted:#767672;
+    --line:#e2e2dc;--board:#f1f1ec;--col:#e6e6df;--yellow:#ffcd11;
+    --ok:#4bce97;--fix:#e2483d;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--board);color:var(--ink);display:flex;flex-direction:column;
+    font-family:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font:inherit;color:inherit}
+  .brandbar{height:3px;background:var(--yellow);flex:0 0 auto}
+
+  .top{background:var(--paper);border-bottom:1px solid var(--line);flex:0 0 auto}
+  .top-inner{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 20px}
+  .wordmark{display:flex;align-items:baseline;gap:7px}
+  .wordmark .product{font-size:13px;color:var(--ink-soft)}
+  .wordmark .dot{width:5px;height:5px;border-radius:50%;background:var(--yellow);align-self:center}
+  .wordmark .lego{font-weight:700;font-size:18px;letter-spacing:-.03em;line-height:1}
+  .wordmark .mkt{font-weight:600;font-size:9.5px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+  .sep{width:1px;height:26px;background:var(--line)}
+  .heading{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;min-width:0}
+  .kicker{display:flex;align-items:center;gap:7px;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:600}
+  .kicker::before{content:"";width:8px;height:8px;background:var(--yellow)}
+  .heading h1{font-size:19px;font-weight:700;letter-spacing:-.015em;line-height:1.2}
+  .heading .subtitle{font-size:13px;color:var(--muted)}
+  .hint{margin-left:auto;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+
+  /* Tablero: columnas por día que se desplazan a la derecha; cada columna se desplaza hacia abajo por dentro */
+  .board{
+    flex:1 1 auto;min-height:0;display:flex;align-items:flex-start;gap:12px;
+    overflow-x:auto;overflow-y:hidden;padding:16px 20px 18px;scroll-snap-type:x proximity;
+  }
+  .col{
+    flex:0 0 284px;max-height:100%;display:flex;flex-direction:column;
+    background:var(--col);border-radius:14px;scroll-snap-align:start;
+  }
+  .col-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px 8px}
+  .col-name{font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+  .col-count{font-size:12px;color:var(--muted);font-weight:600}
+  .col-cards{overflow-y:auto;padding:4px 8px 10px;display:flex;flex-direction:column;gap:9px}
+  .card{
+    display:block;flex:0 0 auto;width:100%;text-align:left;background:var(--paper);border:0;border-radius:10px;
+    overflow:hidden;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.12);transition:box-shadow .12s, transform .12s;
+  }
+  .card:hover{box-shadow:0 0 0 2px var(--ink)}
+  .card:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .cover{position:relative;background:#1b1b1b}
+  .cover img{display:block;width:100%;max-height:360px;object-fit:cover;object-position:top}
+  .play{
+    position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;
+    background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;
+  }
+  .play::after{content:"";border-left:14px solid #fff;border-top:9px solid transparent;border-bottom:9px solid transparent;margin-left:4px}
+  .count-badge{
+    position:absolute;right:8px;top:8px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;font-weight:600;
+    border-radius:99px;padding:3px 9px;
+  }
+  .card-body{padding:9px 12px 11px}
+  .label{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    border-radius:4px;padding:2px 8px;margin-bottom:6px;background:var(--yellow);color:var(--ink)}
+  .label.ok{background:var(--ok)}
+  .label.fix{background:var(--fix);color:#fff}
+  .card-title{font-size:13.5px;font-weight:500;line-height:1.35}
+  .meta{display:flex;gap:12px;margin-top:7px;color:var(--muted);font-size:12px;align-items:center}
+  .meta svg{width:14px;height:14px;vertical-align:-2px;margin-right:3px}
+
+  /* Visor de la pieza */
+  .viewer{position:fixed;inset:0;z-index:50;background:rgba(17,17,17,.82);display:none;align-items:center;justify-content:center;padding:24px}
+  .viewer.open{display:flex}
+  .sheet{
+    background:var(--paper);border-radius:14px;overflow:hidden;width:min(1120px,100%);max-height:100%;
+    display:grid;grid-template-columns:minmax(0,1fr) 380px;
+  }
+  .stage{background:#161616;display:flex;flex-direction:column;min-height:0}
+  .stage-main{position:relative;flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:18px;min-height:0}
+  .stage-main img,.stage-main video{max-width:100%;max-height:calc(100vh - 170px);display:block;border-radius:6px;background:#161616}
+  .nav{
+    position:absolute;top:50%;margin-top:-22px;width:44px;height:44px;border-radius:50%;border:0;cursor:pointer;
+    background:rgba(255,255,255,.9);font-size:22px;line-height:44px;text-align:center;
+  }
+  .nav.prev{left:12px}.nav.next{right:12px}
+  .nav:hover{background:var(--yellow)}
+  .strip{display:flex;gap:8px;padding:0 18px 16px;overflow-x:auto;justify-content:center}
+  .strip button{border:2px solid transparent;border-radius:6px;padding:0;background:none;cursor:pointer;flex:0 0 auto;opacity:.6}
+  .strip button.on{border-color:var(--yellow);opacity:1}
+  .strip img{display:block;height:64px;border-radius:4px}
+  .info{padding:22px 24px;display:flex;flex-direction:column;min-height:0;border-left:1px solid var(--line)}
+  .info-top{display:flex;align-items:flex-start;gap:10px}
+  .info-day{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+  .info h2{font-size:18px;font-weight:700;letter-spacing:-.01em;margin-top:4px;line-height:1.3}
+  .close{margin-left:auto;border:0;background:none;font-size:26px;line-height:1;cursor:pointer;padding:0 4px;color:var(--ink-soft)}
+  .close:hover{color:var(--ink)}
+  .info .label{margin:12px 0 0}
+  .copy{white-space:pre-line;color:var(--ink-soft);font-size:14px;line-height:1.65;margin-top:16px;overflow-y:auto;min-height:0;flex:1 1 auto}
+  .copy.empty{color:var(--muted);font-style:italic}
+  .actions{display:flex;flex-wrap:wrap;gap:10px;padding-top:16px;margin-top:14px;border-top:1px solid var(--line)}
+  .btn{
+    font-size:12px;font-weight:600;letter-spacing:.02em;border-radius:8px;padding:9px 14px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px;transition:.12s;border:1px solid var(--ink);
+  }
+  .btn.light{background:var(--paper);color:var(--ink)}
+  .btn.dark{background:var(--ink);color:var(--paper)}
+  .btn.dark::after{content:"\2193";font-weight:700}
+  .btn:hover,.btn.ok{background:var(--yellow);border-color:var(--yellow);color:var(--ink)}
+  .btn.busy{opacity:.6;pointer-events:none}
+
+  @media (max-width:820px){
+    .top-inner{padding:10px 14px;gap:10px}
+    .sep,.hint{display:none}
+    .heading h1{font-size:16px}
+    .board{padding:12px 14px 14px;scroll-snap-type:x mandatory}
+    .col{flex-basis:82vw}
+    .viewer{padding:0}
+    .sheet{grid-template-columns:1fr;border-radius:0;height:100%;overflow-y:auto;grid-template-rows:auto auto}
+    .stage-main img,.stage-main video{max-height:68vh}
+    .info{border-left:0}
+    .copy{overflow:visible}
+  }
+</style>
+</head>
+<body>
+<div class="brandbar"></div>
+<header class="top">
+  <div class="top-inner">
+    <div class="wordmark"><span class="product">entregas</span><span class="dot"></span><span class="lego">lego</span><span class="mkt">mkt</span></div>
+    <span class="sep"></span>
+    <div class="heading">
+      <span class="kicker">The Lounge</span>
+      <h1>Grilla del 1 al 11 de octubre</h1>
+      <span class="subtitle">Octubre 2026</span>
+    </div>
+    <span class="hint">Desliza a la derecha para ver todos los días · toca una pieza para abrirla</span>
+  </div>
+</header>
+
+<main class="board" id="board"></main>
+
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="v-title">
+  <div class="sheet">
+    <div class="stage">
+      <div class="stage-main" id="v-media"></div>
+      <div class="strip" id="v-strip"></div>
+    </div>
+    <div class="info">
+      <div class="info-top">
+        <div><div class="info-day" id="v-day"></div><h2 id="v-title"></h2></div>
+        <button class="close" id="v-close" aria-label="Cerrar">×</button>
+      </div>
+      <div id="v-label"></div>
+      <div class="copy" id="v-copy"></div>
+      <div class="actions">
+        <button class="btn light" id="v-copybtn">Copiar texto</button>
+        <button class="btn dark" id="v-dl">Descargar</button>
+        <button class="btn light" id="v-dlall">Descargar todas</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var DATA = [{"nombre": "Feed", "cards": [{"titulo": "Así se verá el feed", "etiqueta": "", "copy": "", "files": [{"kind": "image", "src": "assets/00-feed-preview.png", "dl": "The Lounge - Feed - Así se verá el feed.png", "view": "assets/_web/00-feed-preview.jpg", "thumb": "assets/_web/00-feed-preview-t.jpg", "ratio": "1080/1350"}]}]}, {"nombre": "Jueves 01 de octubre", "cards": [{"titulo": "6:00 PM - POST (carrusel)", "etiqueta": "Corregir", "copy": "Tu equipo se lo ganó, celébralo como se debe. 🍾✨\n\nDescubre nuestros Paquetes Navideños Premium y Diamond para San Francisco, Obarrio y Marbella.\n\nExperiencias completas con catering, personal de servicio, tecnología y privacidad 100 % garantizada a puerta cerrada. 📩\n\nEscríbenos por DM y te enviamos toda la información para reservar tu fecha.\n\n#TheLoungePanama #NavidadCorporativa #EventosPTY #SanFranciscoPTY #ObarrioPTY #MarbellaPTY", "files": [{"kind": "image", "src": "assets/jue01-post-4.png", "dl": "The Lounge - Jueves 01 de octubre - 6-00 PM - POST (carrusel) - 1.png", "view": "assets/_web/jue01-post-4.jpg", "thumb": "assets/_web/jue01-post-4-t.jpg", "ratio": "1080/1440"}, {"kind": "image", "src": "assets/jue01-post-3.png", "dl": "The Lounge - Jueves 01 de octubre - 6-00 PM - POST (carrusel) - 2.png", "view": "assets/_web/jue01-post-3.jpg", "thumb": "assets/_web/jue01-post-3-t.jpg", "ratio": "1080/1440"}, {"kind": "image", "src": "assets/jue01-post-2.png", "dl": "The Lounge - Jueves 01 de octubre - 6-00 PM - POST (carrusel) - 3.png", "view": "assets/_web/jue01-post-2.jpg", "thumb": "assets/_web/jue01-post-2-t.jpg", "ratio": "1080/1440"}, {"kind": "image", "src": "assets/jue01-post-1.png", "dl": "The Lounge - Jueves 01 de octubre - 6-00 PM - POST (carrusel) - 4.png", "view": "assets/_web/jue01-post-1.jpg", "thumb": "assets/_web/jue01-post-1-t.jpg", "ratio": "1080/1440"}]}, {"titulo": "Historia Día del Café", "etiqueta": "", "copy": "", "files": [{"kind": "image", "src": "assets/jue01-cafe-story.png", "dl": "The Lounge - Jueves 01 de octubre - Historia Día del Café.png", "view": "assets/_web/jue01-cafe-story.jpg", "thumb": "assets/_web/jue01-cafe-story-t.jpg", "ratio": "1080/1920"}]}, {"titulo": "5:00 PM - HISTORIA", "etiqueta": "", "copy": "", "files": [{"kind": "image", "src": "assets/jue01-h5pm.png", "dl": "The Lounge - Jueves 01 de octubre - 5-00 PM - HISTORIA.png", "view": "assets/_web/jue01-h5pm.jpg", "thumb": "assets/_web/jue01-h5pm-t.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA", "etiqueta": "", "copy": "", "files": [{"kind": "image", "src": "assets/jue01-h6pm.png", "dl": "The Lounge - Jueves 01 de octubre - 6-00 PM - HISTORIA.png", "view": "assets/_web/jue01-h6pm.jpg", "thumb": "assets/_web/jue01-h6pm-t.jpg", "ratio": "1080/1920"}]}, {"titulo": "7:00 PM - HISTORIA", "etiqueta": "", "copy": "", "files": [{"kind": "image", "src": "assets/jue01-h7pm.png", "dl": "The Lounge - Jueves 01 de octubre - 7-00 PM - HISTORIA.png", "view": "assets/_web/jue01-h7pm.jpg", "thumb": "assets/_web/jue01-h7pm-t.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Viernes 02 de octubre", "cards": [{"titulo": "12:00 PM - POST (carrusel)", "etiqueta": "Aprobado", "copy": "Tu grupo. Tu música. Tu Lounge. 🗝️🎶\n\nDisfruta de un espacio 100 % privado las 24 horas del día. Con karaoke de 2 micrófonos, billar, juegos de mesa y la libertad de traer tu propia comida y bebidas sin descorche.\n\n📍 San Francisco | Marbella | Obarrio\n\n📲 Escríbenos al DM y asegura tu lounge este fin de semana.\n\n#TheLoungePanama #PlanDeFinDeSemana #EventosPrivadosPTY #ViernesPTY", "files": [{"kind": "image", "src": "assets/vie02-post-4.png", "dl": "The Lounge - Viernes 02 de octubre - 12-00 PM - POST (carrusel) - 1.png", "view": "assets/_web/vie02-post-4.jpg", "thumb": "assets/_web/vie02-post-4-t.jpg", "ratio": "1080/1440"}, {"kind": "image", "src": "assets/vie02-post-3.png", "dl": "The Lounge - Viernes 02 de octubre - 12-00 PM - POST (carrusel) - 2.png", "view": "assets/_web/vie02-post-3.jpg", "thumb": "assets/_web/vie02-post-3-t.jpg", "ratio": "1080/1440"}, {"kind": "image", "src": "assets/vie02-post-2.png", "dl": "The Lounge - Viernes 02 de octubre - 12-00 PM - POST (carrusel) - 3.png", "view": "assets/_web/vie02-post-2.jpg", "thumb": "assets/_web/vie02-post-2-t.jpg", "ratio": "1080/1440"}, {"kind": "image", "src": "assets/vie02-post-1.png", "dl": "The Lounge - Viernes 02 de octubre - 12-00 PM - POST (carrusel) - 4.png", "view": "assets/_web/vie02-post-1.jpg", "thumb": "assets/_web/vie02-post-1-t.jpg", "ratio": "1080/1440"}]}, {"titulo": "12:00 PM - HISTORIA", "etiqueta": "", "copy": "", "files": [{"kind": "image", "src": "assets/vie02-h12pm.png", "dl": "The Lounge - Viernes 02 de octubre - 12-00 PM - HISTORIA.png", "view": "assets/_web/vie02-h12pm.jpg", "thumb": "assets/_web/vie02-h12pm-t.jpg", "ratio": "1080/1920"}]}, {"titulo": "3:00 PM - HISTORIA", "etiqueta": "", "copy": "", "files": [{"kind": "image", "src": "assets/vie02-h3pm.png", "dl": "The Lounge - Viernes 02 de octubre - 3-00 PM - HISTORIA.png", "view": "assets/_web/vie02-h3pm.jpg", "thumb": "assets/_web/vie02-h3pm-t.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA", "etiqueta": "", "copy": "", "files": [{"kind": "image", "src": "assets/vie02-h6pm.png", "dl": "The Lounge - Viernes 02 de octubre - 6-00 PM - HISTORIA.png", "view": "assets/_web/vie02-h6pm.jpg", "thumb": "assets/_web/vie02-h6pm-t.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Sábado 03 de octubre", "cards": [{"titulo": "12:00 PM - POST (REEL)", "etiqueta": "", "copy": "Este Halloween, el verdadero terror sería terminar en una fiesta pública apretujado y haciendo filas de una hora por un trago. 🎃🧟‍♂️\n\nCambia el plan de siempre y toma el control total de tu noche en The Lounge. Te entregamos las llaves de un club 100% privado a para que celebres el fin de semana de disfraces con tu gente y a tu propio ritmo.\n\n📲 Envíanos un DM con la palabra \"HALLOWEEN\" y asegura tu lounge antes de que sea demasiado tarde.\n\n#TheLoungePanama #HalloweenPanama #SpookySeasonPTY #FiestasDeDisfraces #EventosPrivadosPTY #Halloween2026 #PanamaNights #LoungePrivado", "files": [{"kind": "video", "src": "assets/sab03-reel-halloween.mp4", "dl": "The Lounge - Sábado 03 de octubre - 12-00 PM - POST (REEL).mp4", "thumb": "assets/_web/sab03-reel-halloween-t.jpg", "poster": "assets/_web/sab03-reel-halloween-poster.jpg", "ratio": "480/854"}]}, {"titulo": "12:00 PM - HISTORIA", "etiqueta": "", "copy": "", "files": [{"kind": "image", "src": "assets/sab03-h12pm.png", "dl": "The Lounge - Sábado 03 de octubre - 12-00 PM - HISTORIA.png", "view": "assets/_web/sab03-h12pm.jpg", "thumb": "assets/_web/sab03-h12pm-t.jpg", "ratio": "1080/1920"}]}, {"titulo": "3:00 PM - HISTORIA", "etiqueta": "", "copy": "", "files": [{"kind": "image", "src": "assets/sab03-h3pm.png", "dl": "The Lounge - Sábado 03 de octubre - 3-00 PM - HISTORIA.png", "view": "assets/_web/sab03-h3pm.jpg", "thumb": "assets/_web/sab03-h3pm-t.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA", "etiqueta": "Corregir", "copy": "", "files": [{"kind": "image", "src": "assets/sab03-h6pm.png", "dl": "The Lounge - Sábado 03 de octubre - 6-00 PM - HISTORIA.png", "view": "assets/_web/sab03-h6pm.jpg", "thumb": "assets/_web/sab03-h6pm-t.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Domingo 04 de octubre", "cards": [{"titulo": "12:00 PM - HISTORIA", "etiqueta": "", "copy": "", "files": [{"kind": "image", "src": "assets/dom04-h12pm.png", "dl": "The Lounge - Domingo 04 de octubre - 12-00 PM - HISTORIA.png", "view": "assets/_web/dom04-h12pm.jpg", "thumb": "assets/_web/dom04-h12pm-t.jpg", "ratio": "1080/1920"}]}, {"titulo": "3:00 PM - HISTORIA", "etiqueta": "", "copy": "", "files": [{"kind": "image", "src": "assets/dom04-h3pm.png", "dl": "The Lounge - Domingo 04 de octubre - 3-00 PM - HISTORIA.png", "view": "assets/_web/dom04-h3pm.jpg", "thumb": "assets/_web/dom04-h3pm-t.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA", "etiqueta": "", "copy": "", "files": [{"kind": "image", "src": "assets/dom04-h6pm.png", "dl": "The Lounge - Domingo 04 de octubre - 6-00 PM - HISTORIA.png", "view": "assets/_web/dom04-h6pm.jpg", "thumb": "assets/_web/dom04-h6pm-t.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Lunes 05 de octubre", "cards": [{"titulo": "6:00 PM - POST", "etiqueta": "", "copy": "Tu equipo piensa mejor cuando cambia de aire. 💼✨\n\nReuniones de planificación, capacitaciones u off-sites en un lounge 100% privado: pantallas, WiFi, café y cero interrupciones. Tú eliges la sede y el horario, desde 2 horas.\n\n📍 Marbella | Obarrio | San Francisco\n\n📲 Reserva por WhatsApp\n\n#TheLoungePanama #ReunionesPTY #EventosCorporativosPTY #OffsitePanama", "files": [{"kind": "image", "src": "assets/lun05-post-planifica-2027.png", "dl": "The Lounge - Lunes 05 de octubre - 6-00 PM - POST.png", "view": "assets/_web/lun05-post-planifica-2027.jpg", "thumb": "assets/_web/lun05-post-planifica-2027-t.jpg", "ratio": "1080/1350"}]}, {"titulo": "5:00 PM - HISTORIA", "etiqueta": "", "copy": "Día Mundial de los Docentes.\nTexto del arte: Gracias, profe. Celebra a tu equipo de docentes con un desayuno o almuerzo privado.", "files": [{"kind": "image", "src": "assets/lun05-docente-story.png", "dl": "The Lounge - Lunes 05 de octubre - 5-00 PM - HISTORIA.png", "view": "assets/_web/lun05-docente-story.jpg", "thumb": "assets/_web/lun05-docente-story-t.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA", "etiqueta": "", "copy": "Texto del arte: ¿Dónde fue la última reunión de tu equipo?\n\nSticker de encuesta debajo del recuadro verde:\n«En la oficina 😴» / «Fuera de la oficina 🙌»", "files": [{"kind": "image", "src": "assets/lun05-h-encuesta-reunion.png", "dl": "The Lounge - Lunes 05 de octubre - 6-00 PM - HISTORIA.png", "view": "assets/_web/lun05-h-encuesta-reunion.jpg", "thumb": "assets/_web/lun05-h-encuesta-reunion-t.jpg", "ratio": "1080/1920"}]}, {"titulo": "7:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Recorrido real de The Lounge Marbella.\nTexto del arte: Marbella · Hasta 40 personas · 24/7 · Plaza La Riviera, Marbella\n\nSticker de enlace: theloungepanama.com/the-lounge-marbella/ («Conoce Marbella»)", "files": [{"kind": "video", "src": "assets/lun05-h-marbella-video.mp4", "dl": "The Lounge - Lunes 05 de octubre - 7-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/lun05-h-marbella-video-t.jpg", "poster": "assets/_web/lun05-h-marbella-video-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Martes 06 de octubre", "cards": [{"titulo": "5:00 PM - HISTORIA", "etiqueta": "", "copy": "Texto del arte: ¿Reunión a las 7 a. m.? ¿Cena a las 11 p. m.? Abrimos 24/7.\nTú eliges la hora de entrada y de salida, desde 2 horas.\n\nSticker de enlace: wa.link/0la553 («Reserva»)", "files": [{"kind": "image", "src": "assets/mar06-h-24-7.png", "dl": "The Lounge - Martes 06 de octubre - 5-00 PM - HISTORIA.png", "view": "assets/_web/mar06-h-24-7.jpg", "thumb": "assets/_web/mar06-h-24-7-t.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA", "etiqueta": "", "copy": "Texto del arte: Quiz · ¿Para cuántas personas es San Francisco?\nPista: es nuestra sede para eventos grandes.\n\nSticker de quiz al centro:\n«Hasta 20» / «Hasta 40» / «De 50 hasta 150» ✅", "files": [{"kind": "image", "src": "assets/mar06-h-quiz-sf.png", "dl": "The Lounge - Martes 06 de octubre - 6-00 PM - HISTORIA.png", "view": "assets/_web/mar06-h-quiz-sf.jpg", "thumb": "assets/_web/mar06-h-quiz-sf-t.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Miércoles 07 de octubre", "cards": [{"titulo": "6:00 PM - POST", "etiqueta": "", "copy": "El lounge es tuyo: decóralo como quieras. 🎈🎉\n\nGlobos, letreros, la temática del cumple o la sorpresa que llevas semanas planeando. Reserva unas horas antes para montar todo con calma y celebra a puerta cerrada con tu gente. ¿No quieres encargarte de nada? Te conectamos con nuestros proveedores.\n\n📍 Marbella | Obarrio | San Francisco\n\n📲 Reserva tu fecha por WhatsApp\n\n#TheLoungePanama #CumpleañosPTY #FiestasPrivadas #EventosPrivadosPTY", "files": [{"kind": "image", "src": "assets/mie07-post-tu-fiesta.png", "dl": "The Lounge - Miércoles 07 de octubre - 6-00 PM - POST.png", "view": "assets/_web/mie07-post-tu-fiesta.jpg", "thumb": "assets/_web/mie07-post-tu-fiesta-t.jpg", "ratio": "1080/1350"}]}, {"titulo": "5:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Recorrido real de The Lounge Obarrio.\nTexto del arte: Obarrio · Hasta 25 personas · 24/7 · Plaza Downtown, Obarrio\n\nSticker de enlace: theloungepanama.com/the-lounge-obarrio/ («Conoce Obarrio»)", "files": [{"kind": "video", "src": "assets/mie07-h-obarrio-video.mp4", "dl": "The Lounge - Miércoles 07 de octubre - 5-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/mie07-h-obarrio-video-t.jpg", "poster": "assets/_web/mie07-h-obarrio-video-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA", "etiqueta": "", "copy": "Texto del arte: Una puerta. Tu pin.\nSin cámaras ni micrófonos adentro. Solo tú y tu gente.\n\nSticker de preguntas: «¿Qué quieres saber de The Lounge?»", "files": [{"kind": "image", "src": "assets/mie07-h-tu-pin.png", "dl": "The Lounge - Miércoles 07 de octubre - 6-00 PM - HISTORIA.png", "view": "assets/_web/mie07-h-tu-pin.jpg", "thumb": "assets/_web/mie07-h-tu-pin-t.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Jueves 08 de octubre", "cards": [{"titulo": "5:00 PM - HISTORIA", "etiqueta": "", "copy": "Texto del arte: ¿Quién agarra el micrófono?\nKaraoke, billar, dardos y juegos de mesa: ya vienen con tu lounge.\n\nSticker de encuesta: «Karaoke 🎤» / «Billar 🎱»", "files": [{"kind": "image", "src": "assets/jue08-h-karaoke.png", "dl": "The Lounge - Jueves 08 de octubre - 5-00 PM - HISTORIA.png", "view": "assets/_web/jue08-h-karaoke.jpg", "thumb": "assets/_web/jue08-h-karaoke-t.jpg", "ratio": "1080/1920"}]}, {"titulo": "6:00 PM - HISTORIA (VIDEO)", "etiqueta": "", "copy": "Única historia de Navidad de la semana.\nTexto del arte: Navidad 2026 · ¿Ya tienen fecha para la fiesta de fin de año?\nPaquetes corporativos de Navidad: desayuno, brunch, almuerzo o cena.\nEscríbenos NAVIDAD por DM.\n\nSticker de enlace: wa.link/0la553 («Cotiza tu fecha»)", "files": [{"kind": "video", "src": "assets/jue08-h-navidad-video.mp4", "dl": "The Lounge - Jueves 08 de octubre - 6-00 PM - HISTORIA (VIDEO).mp4", "thumb": "assets/_web/jue08-h-navidad-video-t.jpg", "poster": "assets/_web/jue08-h-navidad-video-poster.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Viernes 09 de octubre", "cards": [{"titulo": "6:00 PM - POST (carrusel)", "etiqueta": "", "copy": "Alquilar un lounge privado por horas es así de fácil. 🔑\n\n1. Elige tu lounge: Obarrio, Marbella o San Francisco.\n2. Escoge el día y la hora: abrimos 24/7, desde 2 horas.\n3. Entra con tu pin: el espacio es solo para ti y tu grupo.\n4. Trae lo que quieras: aquí no cobramos descorche.\n\n¿Dudas sobre qué sede te conviene? Escríbenos y te ayudamos a elegir.\n\n#TheLoungePanama #LoungePrivado #EventosPrivadosPTY #PlanesPanama", "files": [{"kind": "image", "src": "assets/vie09-carrusel-1.png", "dl": "The Lounge - Viernes 09 de octubre - 6-00 PM - POST (carrusel) - 1.png", "view": "assets/_web/vie09-carrusel-1.jpg", "thumb": "assets/_web/vie09-carrusel-1-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/vie09-carrusel-2.png", "dl": "The Lounge - Viernes 09 de octubre - 6-00 PM - POST (carrusel) - 2.png", "view": "assets/_web/vie09-carrusel-2.jpg", "thumb": "assets/_web/vie09-carrusel-2-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/vie09-carrusel-3.png", "dl": "The Lounge - Viernes 09 de octubre - 6-00 PM - POST (carrusel) - 3.png", "view": "assets/_web/vie09-carrusel-3.jpg", "thumb": "assets/_web/vie09-carrusel-3-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/vie09-carrusel-4.png", "dl": "The Lounge - Viernes 09 de octubre - 6-00 PM - POST (carrusel) - 4.png", "view": "assets/_web/vie09-carrusel-4.jpg", "thumb": "assets/_web/vie09-carrusel-4-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/vie09-carrusel-5.png", "dl": "The Lounge - Viernes 09 de octubre - 6-00 PM - POST (carrusel) - 5.png", "view": "assets/_web/vie09-carrusel-5.jpg", "thumb": "assets/_web/vie09-carrusel-5-t.jpg", "ratio": "1080/1350"}, {"kind": "image", "src": "assets/vie09-carrusel-6.png", "dl": "The Lounge - Viernes 09 de octubre - 6-00 PM - POST (carrusel) - 6.png", "view": "assets/_web/vie09-carrusel-6.jpg", "thumb": "assets/_web/vie09-carrusel-6-t.jpg", "ratio": "1080/1350"}]}, {"titulo": "12:00 PM - HISTORIA", "etiqueta": "", "copy": "Texto del arte: ¿Cumples este mes? Trae tus globos, tu pastel y tu tema. El lounge es tuyo.\n\nSticker de enlace: wa.link/0la553 («Reserva tu fecha»), sobre la pastilla verde.", "files": [{"kind": "video", "src": "assets/vie09-h-cumple-video.mp4", "dl": "The Lounge - Viernes 09 de octubre - 12-00 PM - HISTORIA.mp4", "thumb": "assets/_web/vie09-h-cumple-video-t.jpg", "poster": "assets/_web/vie09-h-cumple-video-poster.jpg", "ratio": "1080/1920"}]}, {"titulo": "3:00 PM - HISTORIA", "etiqueta": "", "copy": "Texto del arte: Trae tu vino. Aquí no cobramos descorche.\nNi por tu pastel, ni por tu DJ.\n\nSticker deslizador de emoji: 🍷", "files": [{"kind": "image", "src": "assets/vie09-h-sin-descorche.png", "dl": "The Lounge - Viernes 09 de octubre - 3-00 PM - HISTORIA.png", "view": "assets/_web/vie09-h-sin-descorche.jpg", "thumb": "assets/_web/vie09-h-sin-descorche-t.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Sábado 10 de octubre", "cards": [{"titulo": "12:00 PM - POST", "etiqueta": "", "copy": "Desconecta para volver a conectar. 🌿\n\nEn el Día Mundial de la Salud Mental, regálale a tu equipo un off-site distinto: un espacio privado, cómodo y sin distracciones para hablar, planear o simplemente respirar.\n\n📍 Marbella · Obarrio · San Francisco\nReserva en theloungepanama.com o escríbenos al (507) 6315-8888.\n\n#TheLoungePanama #SaludMental #BienestarLaboral #OffsitePTY", "files": [{"kind": "image", "src": "assets/sab10-post-salud-mental.png", "dl": "The Lounge - Sábado 10 de octubre - 12-00 PM - POST.png", "view": "assets/_web/sab10-post-salud-mental.jpg", "thumb": "assets/_web/sab10-post-salud-mental-t.jpg", "ratio": "1080/1350"}]}, {"titulo": "12:00 PM - HISTORIA", "etiqueta": "", "copy": "", "files": [{"kind": "image", "src": "assets/sab10-salud-mental-story.png", "dl": "The Lounge - Sábado 10 de octubre - 12-00 PM - HISTORIA.png", "view": "assets/_web/sab10-salud-mental-story.jpg", "thumb": "assets/_web/sab10-salud-mental-story-t.jpg", "ratio": "1080/1920"}]}, {"titulo": "3:00 PM - HISTORIA", "etiqueta": "", "copy": "Texto del arte: San Francisco · Con terraza incluida.\n2 ambientes, barra iluminada y luces dimeables.\n\nSticker de enlace: theloungepanama.com/the-lounge-san-francisco/ («Conoce San Francisco»)", "files": [{"kind": "image", "src": "assets/sab10-h-terraza-sf.png", "dl": "The Lounge - Sábado 10 de octubre - 3-00 PM - HISTORIA.png", "view": "assets/_web/sab10-h-terraza-sf.jpg", "thumb": "assets/_web/sab10-h-terraza-sf-t.jpg", "ratio": "1080/1920"}]}]}, {"nombre": "Domingo 11 de octubre", "cards": [{"titulo": "12:00 PM - HISTORIA", "etiqueta": "", "copy": "Texto del arte: 5/5 · Más de 130 reseñas.\nGracias por elegirnos para sus celebraciones, reuniones y noches de juego.\n\nSticker de preguntas: «Cuéntanos tu mejor momento en The Lounge»", "files": [{"kind": "image", "src": "assets/dom11-h-resenas.png", "dl": "The Lounge - Domingo 11 de octubre - 12-00 PM - HISTORIA.png", "view": "assets/_web/dom11-h-resenas.jpg", "thumb": "assets/_web/dom11-h-resenas-t.jpg", "ratio": "1080/1920"}]}, {"titulo": "3:00 PM - HISTORIA", "etiqueta": "", "copy": "Texto del arte: ¿Prefieres que lo organicemos nosotros?\nTenemos paquetes para cumpleaños, fiestas y eventos corporativos.\n\nSticker de enlace: wa.link/0la553 («Escríbenos»), sobre la pastilla verde.", "files": [{"kind": "image", "src": "assets/dom11-h-paquetes.png", "dl": "The Lounge - Domingo 11 de octubre - 3-00 PM - HISTORIA.png", "view": "assets/_web/dom11-h-paquetes.jpg", "thumb": "assets/_web/dom11-h-paquetes-t.jpg", "ratio": "1080/1920"}]}]}];
+var ICON_COPY = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 4h10M3 8h10M3 12h6"/></svg>';
+var ICON_CLIP = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 4.5 5.4 9.6a1.6 1.6 0 0 0 2.3 2.3l5.4-5.4a3 3 0 0 0-4.3-4.3L3.5 7.5a4.4 4.4 0 0 0 6.2 6.2L13 10.4"/></svg>';
+function esc(s){ var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+function labelHtml(t){
+  if(!t) return "";
+  var k=t.toLowerCase(), cls=/aprob/.test(k)?" ok":(/correg|cambio/.test(k)?" fix":"");
+  return '<span class="label'+cls+'">'+esc(t)+'</span>';
+}
+
+var board=document.getElementById("board");
+DATA.forEach(function(col, ci){
+  var el=document.createElement("section"); el.className="col";
+  el.innerHTML='<div class="col-head"><span class="col-name">'+esc(col.nombre)+'</span><span class="col-count">'+col.cards.length+'</span></div><div class="col-cards"></div>';
+  var list=el.querySelector(".col-cards");
+  col.cards.forEach(function(card, ki){
+    var f=card.files[0], b=document.createElement("button"); b.className="card"; b.type="button";
+    var cover = f && f.thumb ? '<div class="cover"><img loading="lazy" alt="" src="'+f.thumb+'">'
+      + (f.kind==="video" ? '<span class="play"></span>' : '')
+      + (card.files.length>1 ? '<span class="count-badge">'+card.files.length+' slides</span>' : '') + '</div>' : '';
+    b.innerHTML = cover + '<div class="card-body">'+labelHtml(card.etiqueta)+'<div class="card-title">'+esc(card.titulo)+'</div>'
+      + '<div class="meta">'+(card.copy?'<span>'+ICON_COPY+'</span>':'')+(card.files.length?'<span>'+ICON_CLIP+card.files.length+'</span>':'')+'</div></div>';
+    b.addEventListener("click", function(){ openCard(ci, ki); });
+    list.appendChild(b);
+  });
+  board.appendChild(el);
+});
+
+/* Visor */
+var viewer=document.getElementById("viewer"), cur=null, idx=0, lastFocus=null;
+function openCard(ci, ki){
+  lastFocus=document.activeElement;
+  var col=DATA[ci], card=col.cards[ki]; cur=card; idx=0;
+  document.getElementById("v-day").textContent=col.nombre;
+  document.getElementById("v-title").textContent=card.titulo;
+  document.getElementById("v-label").innerHTML=labelHtml(card.etiqueta);
+  var c=document.getElementById("v-copy");
+  c.textContent=card.copy||"Sin copy (pieza de historia o de referencia).";
+  c.className="copy"+(card.copy?"":" empty");
+  document.getElementById("v-copybtn").style.display=card.copy?"":"none";
+  document.getElementById("v-dlall").style.display=card.files.length>1?"":"none";
+  var strip=document.getElementById("v-strip"); strip.innerHTML="";
+  if(card.files.length>1) card.files.forEach(function(f,i){
+    var t=document.createElement("button"); t.type="button"; t.setAttribute("aria-label","Slide "+(i+1));
+    t.innerHTML='<img alt="" src="'+f.thumb+'">'; t.addEventListener("click",function(){ show(i); }); strip.appendChild(t);
+  });
+  show(0);
+  viewer.classList.add("open"); document.body.style.overflow="hidden";
+  document.getElementById("v-close").focus();
+}
+function show(i){
+  var files=cur.files; if(!files.length){ document.getElementById("v-media").innerHTML=""; return; }
+  idx=(i+files.length)%files.length; var f=files[idx], m=document.getElementById("v-media");
+  var media = f.kind==="video"
+    ? '<video controls playsinline preload="metadata" '+(f.poster?'poster="'+f.poster+'" ':'')+'style="aspect-ratio:'+f.ratio+'" src="'+f.src+'"></video>'
+    : '<img alt="" style="aspect-ratio:'+f.ratio+'" src="'+f.view+'">';
+  var nav = files.length>1 ? '<button class="nav prev" type="button" aria-label="Anterior">‹</button><button class="nav next" type="button" aria-label="Siguiente">›</button>' : '';
+  m.innerHTML = media + nav;
+  if(files.length>1){
+    m.querySelector(".prev").onclick=function(){ show(idx-1); };
+    m.querySelector(".next").onclick=function(){ show(idx+1); };
+  }
+  [].forEach.call(document.querySelectorAll("#v-strip button"),function(b,j){ b.classList.toggle("on", j===idx); });
+  document.getElementById("v-dl").textContent = files.length>1 ? "Descargar slide "+(idx+1) : (f.kind==="video"?"Descargar video":"Descargar imagen");
+}
+function closeViewer(){
+  var v=document.querySelector("#v-media video"); if(v) v.pause();
+  viewer.classList.remove("open"); document.body.style.overflow=""; cur=null;
+  if(lastFocus) lastFocus.focus();
+}
+document.getElementById("v-close").onclick=closeViewer;
+viewer.addEventListener("click",function(e){ if(e.target===viewer) closeViewer(); });
+document.addEventListener("keydown",function(e){
+  if(!cur) return;
+  if(e.key==="Escape") closeViewer();
+  else if(e.key==="ArrowRight" && cur.files.length>1) show(idx+1);
+  else if(e.key==="ArrowLeft" && cur.files.length>1) show(idx-1);
+});
+
+document.getElementById("v-copybtn").onclick=function(){
+  var btn=this, text=cur.copy;
+  var done=function(){ btn.textContent="Copiado ✓"; btn.classList.add("ok"); setTimeout(function(){ btn.textContent="Copiar texto"; btn.classList.remove("ok"); },1600); };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done, fallback); } else fallback();
+  function fallback(){ var t=document.createElement("textarea"); t.value=text; document.body.appendChild(t); t.select(); try{document.execCommand("copy"); done();}catch(e){} document.body.removeChild(t); }
+};
+/* Descarga sin salir de la página (fetch + Blob); si no hay fetch, cae al <a download> nativo */
+function download(f, btn){
+  var a=document.createElement("a"); a.download=f.dl;
+  if(!(window.fetch && window.Blob && window.URL && URL.createObjectURL)){ a.href=f.src; document.body.appendChild(a); a.click(); a.remove(); return Promise.resolve(); }
+  if(btn) btn.classList.add("busy");
+  return fetch(f.src).then(function(r){ return r.blob(); }).then(function(b){
+    var u=URL.createObjectURL(b); a.href=u; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(u); }, 4000);
+  }).catch(function(){ a.href=f.src; document.body.appendChild(a); a.click(); a.remove(); })
+    .then(function(){ if(btn) btn.classList.remove("busy"); });
+}
+document.getElementById("v-dl").onclick=function(){ download(cur.files[idx], this); };
+document.getElementById("v-dlall").onclick=function(){
+  var btn=this, files=cur.files.slice(), i=0; btn.classList.add("busy");
+  (function next(){ if(i>=files.length){ btn.classList.remove("busy"); return; } download(files[i++]).then(function(){ setTimeout(next, 350); }); })();
+};
+</script>
+</body>
+</html>
